@@ -1,0 +1,4 @@
+## ignore class files 
+
+/cdcl/target
+cdcl/.vscode
