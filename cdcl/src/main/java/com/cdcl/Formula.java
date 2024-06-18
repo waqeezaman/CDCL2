@@ -6,8 +6,11 @@ import java.util.Iterator;
 import java.util.List;
 
 public class Formula {
+
         private  List<HashSet<Integer>> Clauses = new ArrayList< HashSet<Integer>>();
         private  int NumVariables;
+
+        private List<Integer> InitialUnits = new ArrayList<>();
 
 
 
@@ -15,6 +18,14 @@ public class Formula {
 
             Clauses = clauses;
             NumVariables = numvars;
+
+            for(HashSet<Integer> clause: Clauses){
+                if (clause.size()==1){
+                   
+                    InitialUnits.addAll(clause);
+
+                }
+            }
 
         }
 
