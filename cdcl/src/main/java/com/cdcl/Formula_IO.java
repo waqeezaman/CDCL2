@@ -1,6 +1,7 @@
 package com.cdcl;
 
 import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -11,8 +12,16 @@ import com.cdcl.*;
 public class Formula_IO {
 
 
-     private static Formula ReadFormula() throws Exception{
-        var in = new BufferedReader(new InputStreamReader(System.in));
+     public static Formula ReadFormula(String path) throws Exception{
+
+        // currently filepath provided, override method to include input stream from cat console
+        FileReader filein = new FileReader(path);
+
+
+        // var in = new BufferedReader(new InputStreamReader(System.in));
+        var in = new BufferedReader(filein);
+
+
         int numvars=0;
 
         List<HashSet<Integer>> clauses = new ArrayList< HashSet<Integer>>();
@@ -47,7 +56,7 @@ public class Formula_IO {
             if (line == null) break;
             
                 String[] vars_in_clause = line.split(" ");
-                System.out.println(line);
+                // System.out.println(line);
                 HashSet<Integer> clause = new HashSet<Integer>();
 
                 for(String s: vars_in_clause){
@@ -63,7 +72,11 @@ public class Formula_IO {
             
         }
 
+        in.close();
 
         return new Formula(clauses, numvars);
     }
+
+
+
 }

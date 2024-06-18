@@ -2,6 +2,7 @@ package com.cdcl;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 public class Formula {
@@ -17,6 +18,7 @@ public class Formula {
 
         }
 
+       
 
 
 
@@ -35,13 +37,27 @@ public class Formula {
         }
 
 
-        private boolean isTautology(HashSet<Integer> clause){
-            for (int var =1; var<=NumVariables;var++){
+        public static boolean isTautology(HashSet<Integer> clause){
+            // for (int var =1; var<=NumVariables;var++){
 
-                if (clause.contains(var) && clause.contains(-var)){
+            //     if (clause.contains(var) && clause.contains(-var)){
+            //         return true;
+            //     }
+            // }
+            // return false;
+
+
+            Iterator<Integer> iterator = clause.iterator();
+
+
+            while (iterator.hasNext()){
+
+                if ( clause.contains(-iterator.next()) ){
                     return true;
                 }
+
             }
+
             return false;
     
 
@@ -55,6 +71,24 @@ public class Formula {
 
 
 
+        }
+
+
+        public List<HashSet<Integer>> getClauses(){
+            return Clauses;
+        }
+
+        public int getNumVariables(){
+            return NumVariables;
+        }
+
+        public void OutputClauses(){
+            System.out.println("CLAUSES");
+            for( HashSet<Integer> clause : Clauses){
+                System.out.println(clause);
+                
+            }
+            System.out.println("=============================================================================");
         }
 
 }
