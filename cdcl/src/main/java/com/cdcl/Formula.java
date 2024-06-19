@@ -93,6 +93,10 @@ public class Formula {
             return NumVariables;
         }
 
+        public List<Integer> getInitialUnits(){
+            return InitialUnits;
+        }
+
         public void OutputClauses(){
             System.out.println("CLAUSES");
             for( HashSet<Integer> clause : Clauses){

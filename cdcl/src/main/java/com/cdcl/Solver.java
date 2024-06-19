@@ -1,6 +1,9 @@
 package com.cdcl;
 
 import java.util.ArrayList;
+import java.util.List;
+
+
 
 public class Solver {
 
@@ -10,7 +13,7 @@ public class Solver {
     private Formula Formula;
 
 
-    private static ArrayList<Integer> PartialAssignment = new ArrayList<Integer>();
+    private static List<Integer> PartialAssignment = new ArrayList<Integer>();
 
 
 
@@ -23,7 +26,9 @@ public class Solver {
 
         Formula = Formula_IO.ReadFormula(path); 
 
+        PartialAssignment = new ArrayList<Integer>(Formula.getInitialUnits());
 
+                
 
 
         

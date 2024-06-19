@@ -1,15 +1,16 @@
 package com.cdcl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 public class TwoWatch {
     
 
-    // do i really need both of these????
     // which stores the literals in the formula and the clauses that they are being watched in 
     private static HashMap<Integer,ArrayList<Integer>> Literal_To_Clause= new HashMap<Integer,ArrayList<Integer>>();
 
@@ -58,6 +59,7 @@ public class TwoWatch {
 
         }
 
+
       
         
         
@@ -75,7 +77,7 @@ public class TwoWatch {
      * @param new_units , pass in empty list, will be filled with new unit literals that are found, if a conflict occurs, this can be ignored
      * @return  , boolean indicating whether a conflict has occurred
      */
-    public boolean UpdateWatchedLiterals(Integer added_literal, List<Integer> partial_assignment, List<Integer> new_units){
+    public boolean UpdateWatchedLiterals(Integer added_literal, List<Integer> partial_assignment, Set<Integer> new_units){
 
 
         int affected_literal = -added_literal;
@@ -92,24 +94,65 @@ public class TwoWatch {
             }
             
 
-            int potential_new_watched_literal = findUnwatchedLiteral(   affected_literal,
+            int[] two_watch_update = findUnwatchedLiteral(   affected_literal,
                                                                         watch_literal_2,
                                                                         Formula.getClauses().get(affected_clause),
                                                                         partial_assignment
                                                                     );
-
+            
             // conflict has occured
-            if( potential_new_watched_literal == 0 ){
+            if( two_watch_update[0] == 1 ){
                 new_units.clear();  // cleared to make sure these are not used at all !!
                 return true;
             } 
-            // new unit literal found 
-            else if( potential_new_watched_literal!=-1){
-                new_units.add(potential_new_watched_literal);
+            // check if new unit literal found 
+            else if( two_watch_update[1] != 0 ){
+                new_units.add( two_watch_update[1] );
             }
+            else{
+                Literal_To_Clause.get(affected_literal).remove(affected_clause);
+                Literal_To_Clause.get(two_watch_update[1]).add(affected_clause);
+
+                if (Clause_To_Literal.get(affected_clause)[0]== affected_literal){
+                    Clause_To_Literal.get(affected_clause)[0] = two_watch_update[1];
+                }
+                else{
+                    Clause_To_Literal.get(affected_clause)[1] = two_watch_update[1];
+                }
+                
+
+            }
+
+        System.out.println("================================================" );
+
+        System.out.println("CLAUSE TO LITERAL " );
+
+        for( int i =0; i<Formula.getClauses().size(); i++){
+            System.out.println("CLAUSE "+ i);
+
+            System.out.println( Arrays.toString(Clause_To_Literal.get(i)) );
+        }
+
 
 
         }
+
+        System.out.println("UNITS :" + new_units.toString());
+
+
+        // System.out.println("CLAUSE TO LITERAL " + Clause_To_Literal.toString());
+
+        // for( int i =0; i<Formula.getClauses().size(); i++){
+        //     System.out.println("CLAUSE "+ i);
+
+        //     System.out.println( Arrays.toString(Clause_To_Literal.get(i)) );
+        // }
+
+
+        // System.out.println("Literal TO CLAUSE " + Literal_To_Clause.toString());
+      
+        
+        
 
         // no conflict found 
         return false;
@@ -128,17 +171,21 @@ public class TwoWatch {
      * 
      * Method to reassign watched literals after a literal has been made False
      * 
-     * @return returns new unit literal, returns 0 if conflict occurs, returns -1 otherwise
+     * If the first element of the returned array is a 1, that means a conflct has occurred
+     * The second element of the array is used to specify a new unit literal, if one has been found 
+     * If no new unit literal has been found the second element is set to zero 
+     * 
+     * @return returns 2 element array, indicating whether a conflict has occured and new unit literals
      */
-    private int findUnwatchedLiteral(int watched_literal1, int watched_literal2, HashSet<Integer> clause, List<Integer> partial_assignment){
+    private int[] findUnwatchedLiteral(int watched_literal1, int watched_literal2, HashSet<Integer> clause, List<Integer> partial_assignment){
 
 
         for(int l: clause){
 
-            if( !partial_assignment.contains(l) && watched_literal1!=l && watched_literal2!=l ){
+            if( !partial_assignment.contains(-l) && watched_literal1!=l && watched_literal2!=l ){
                 
-                watched_literal1 = l;
-                return -1;
+                 
+                return new int[]{0,0};
 
             }
 
@@ -147,19 +194,19 @@ public class TwoWatch {
         if( !partial_assignment.contains(watched_literal2) && !partial_assignment.contains(-watched_literal2) ){
 
             // this is a new unit clause
-            return watched_literal2;
+            return new int[]{0,watched_literal2};
         }
 
         if( partial_assignment.contains(-watched_literal2)){
             // a conflict has occurred
-            return 0;
+            return new int[]{1,0};
         }
 
         
 
 
 
-        return 0;
+        return new int[]{};
     }
 
 
