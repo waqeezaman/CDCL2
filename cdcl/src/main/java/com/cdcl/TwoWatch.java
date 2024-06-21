@@ -94,9 +94,10 @@ public class TwoWatch {
             }
             
 
-            int[] two_watch_update = findUnwatchedLiteral(   affected_literal,
+            int[] two_watch_update = findUnwatchedLiteral(              affected_literal,
                                                                         watch_literal_2,
                                                                         Formula.getClauses().get(affected_clause),
+                                                                        affected_clause,
                                                                         partial_assignment
                                                                     );
             
@@ -109,50 +110,20 @@ public class TwoWatch {
             else if( two_watch_update[1] != 0 ){
                 new_units.add( two_watch_update[1] );
             }
-            else{
-                Literal_To_Clause.get(affected_literal).remove(affected_clause);
-                Literal_To_Clause.get(two_watch_update[1]).add(affected_clause);
+          
 
-                if (Clause_To_Literal.get(affected_clause)[0]== affected_literal){
-                    Clause_To_Literal.get(affected_clause)[0] = two_watch_update[1];
-                }
-                else{
-                    Clause_To_Literal.get(affected_clause)[1] = two_watch_update[1];
-                }
-                
 
-            }
 
-        System.out.println("================================================" );
 
-        System.out.println("CLAUSE TO LITERAL " );
 
-        for( int i =0; i<Formula.getClauses().size(); i++){
-            System.out.println("CLAUSE "+ i);
-
-            System.out.println( Arrays.toString(Clause_To_Literal.get(i)) );
-        }
+     
 
 
 
         }
 
-        System.out.println("UNITS :" + new_units.toString());
 
-
-        // System.out.println("CLAUSE TO LITERAL " + Clause_To_Literal.toString());
-
-        // for( int i =0; i<Formula.getClauses().size(); i++){
-        //     System.out.println("CLAUSE "+ i);
-
-        //     System.out.println( Arrays.toString(Clause_To_Literal.get(i)) );
-        // }
-
-
-        // System.out.println("Literal TO CLAUSE " + Literal_To_Clause.toString());
-      
-        
-        
+   
 
         // no conflict found 
         return false;
@@ -177,20 +148,37 @@ public class TwoWatch {
      * 
      * @return returns 2 element array, indicating whether a conflict has occured and new unit literals
      */
-    private int[] findUnwatchedLiteral(int watched_literal1, int watched_literal2, HashSet<Integer> clause, List<Integer> partial_assignment){
+    private int[] findUnwatchedLiteral( int watched_literal1,
+                                        int watched_literal2,
+                                        HashSet<Integer> clause,
+                                        Integer affected_clause_index,
+                                        List<Integer> partial_assignment){
 
 
         for(int l: clause){
 
+            // this where we find a new watch literal 
             if( !partial_assignment.contains(-l) && watched_literal1!=l && watched_literal2!=l ){
                 
-                 
+                // need to update the two watch structure here 
+                Literal_To_Clause.get(watched_literal1).remove(affected_clause_index);
+                Literal_To_Clause.get(l).add(affected_clause_index);
+                
+                if ( Clause_To_Literal.get(affected_clause_index)[0] == watched_literal1){
+                    Clause_To_Literal.get(affected_clause_index)[0] = l;
+                }
+                else{
+                    Clause_To_Literal.get(affected_clause_index)[1] = l;
+                }
+                
                 return new int[]{0,0};
 
             }
 
         }
 
+        // check that watch literal 2 is unassigned, if so this clause is now a unit clause
+        // since all literals must be false except watch literal 2
         if( !partial_assignment.contains(watched_literal2) && !partial_assignment.contains(-watched_literal2) ){
 
             // this is a new unit clause
@@ -205,8 +193,8 @@ public class TwoWatch {
         
 
 
-
-        return new int[]{};
+        // this is the case where watched_literal_2 is set to true, and all variables are false
+        return new int[]{0,0};
     }
 
 

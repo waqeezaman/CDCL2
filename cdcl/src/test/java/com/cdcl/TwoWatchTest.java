@@ -59,7 +59,7 @@ public class TwoWatchTest {
         partial_assignment.add(1);
         assertFalse(twowatch.UpdateWatchedLiterals(1, partial_assignment, units));
         partial_assignment.add(-1);
-        assertTrue(twowatch.UpdateWatchedLiterals(-1, partial_assignment, units));
+        assertTrue(twowatch.UpdateWatchedLiterals(-2, partial_assignment, units));
 
 
         // assertEquals( units,  new HashSet<Integer>(Arrays.asList(1,-1) )  );
@@ -71,6 +71,49 @@ public class TwoWatchTest {
     }
 
 
+    @Test
+    void testUpdateWatchedLiteralsGetUnit() throws Exception{
+
+
+        Formula formula = Formula_IO.ReadFormula("/home/waqee/CDCL2/cdcl/src/Formulas/Test/two_watch2.cnf");
+
+
+
+        TwoWatch twowatch = new TwoWatch(formula);
+
+        List<Integer> partial_assignment = new ArrayList<Integer>();
+
+        Set<Integer> units = new HashSet<Integer>();
+
+        partial_assignment.add(-5);
+
+        assertFalse(twowatch.UpdateWatchedLiterals(-5, partial_assignment, units));
+        assertEquals(new HashSet<Integer>(), units);
+
+        partial_assignment.add(-4);
+
+        assertFalse(twowatch.UpdateWatchedLiterals(-4, partial_assignment, units));
+        assertEquals(new HashSet<Integer>(), units);
+
+        partial_assignment.add(-3);
+
+        assertFalse(twowatch.UpdateWatchedLiterals(-3, partial_assignment, units));
+        assertEquals(new HashSet<Integer>(), units);
+
+        partial_assignment.add(-2);
+
+        assertFalse(twowatch.UpdateWatchedLiterals(-2, partial_assignment, units));
+        assertEquals(new HashSet<Integer>(Arrays.asList(1)), units);
+
+        partial_assignment.add(-1);
+
+        assertTrue(twowatch.UpdateWatchedLiterals(-1, partial_assignment, units));
+
+
+
+
+
+    }
 
 
 }
