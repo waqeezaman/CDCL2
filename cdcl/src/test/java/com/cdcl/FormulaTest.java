@@ -1,5 +1,6 @@
 package com.cdcl;
 
+import java.io.FileReader;
 import java.util.HashSet;
 
 // import org.junit.Test;
@@ -18,7 +19,7 @@ public class FormulaTest {
     public void noTautologiesTest() throws Exception{
 
 
-        Formula f = Formula_IO.ReadFormula("/home/waqee/CDCL2/cdcl/src/Formulas/Test/no_tautologies.cnf");
+        Formula f = Formula_IO.ReadFormula(new FileReader("/home/waqee/CDCL2/cdcl/src/Formulas/Test/no_tautologies.cnf"));
 
 
         for(HashSet<Integer> clause:f.getClauses()){
@@ -35,7 +36,7 @@ public class FormulaTest {
 
     @Test
     public void allTautologiesTest() throws Exception{
-        Formula f = Formula_IO.ReadFormula("/home/waqee/CDCL2/cdcl/src/Formulas/Test/all_tautologies.cnf");
+        Formula f = Formula_IO.ReadFormula(new FileReader("/home/waqee/CDCL2/cdcl/src/Formulas/Test/all_tautologies.cnf"));
 
 
         for(HashSet<Integer> clause:f.getClauses()){
@@ -49,7 +50,7 @@ public class FormulaTest {
     @Test 
     public void eliminateTautologiesNoTautolgiesTest() throws Exception{
 
-        Formula f = Formula_IO.ReadFormula("/home/waqee/CDCL2/cdcl/src/Formulas/Test/no_tautologies.cnf");
+        Formula f = Formula_IO.ReadFormula(new FileReader("/home/waqee/CDCL2/cdcl/src/Formulas/Test/no_tautologies.cnf"));
 
         
 
@@ -67,7 +68,7 @@ public class FormulaTest {
     @Test 
     public void eliminateTautologiesContainsTautolgiesTest() throws Exception{
 
-        Formula f = Formula_IO.ReadFormula("/home/waqee/CDCL2/cdcl/src/Formulas/Test/all_tautologies.cnf");
+        Formula f = Formula_IO.ReadFormula(new FileReader("/home/waqee/CDCL2/cdcl/src/Formulas/Test/all_tautologies.cnf"));
 
         f.optimise();
 

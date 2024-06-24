@@ -3,6 +3,7 @@ package com.cdcl;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -11,15 +12,16 @@ import com.cdcl.*;
 
 public class Formula_IO {
 
+    public static Formula ReadFormula(Reader input_reader) throws Exception{
 
-     public static Formula ReadFormula(String path) throws Exception{
+    //  public static Formula ReadFormula(String path) throws Exception{
 
         // currently filepath provided, override method to include input stream from cat console
-        FileReader filein = new FileReader(path);
+        // FileReader filein = new FileReader(path);
 
 
         // var in = new BufferedReader(new InputStreamReader(System.in));
-        var in = new BufferedReader(filein);
+        var in = new BufferedReader(input_reader);
 
 
         int numvars=0;

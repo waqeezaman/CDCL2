@@ -19,13 +19,20 @@ public class Formula {
             Clauses = clauses;
             NumVariables = numvars;
 
+            optimise();
+
+            HashSet<Integer> units = new HashSet<>();
+
             for(HashSet<Integer> clause: Clauses){
-                if (clause.size()==1){
+                if (clause.size()==1 ){
                    
-                    InitialUnits.addAll(clause);
+                    units.addAll(clause);
+                    
 
                 }
             }
+
+            InitialUnits.addAll(units);
 
         }
 
@@ -96,6 +103,9 @@ public class Formula {
         public List<Integer> getInitialUnits(){
             return InitialUnits;
         }
+
+
+
 
         public void OutputClauses(){
             System.out.println("CLAUSES");

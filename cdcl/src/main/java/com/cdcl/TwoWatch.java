@@ -77,13 +77,15 @@ public class TwoWatch {
      * @param new_units , pass in empty list, will be filled with new unit literals that are found, if a conflict occurs, this can be ignored
      * @return  , boolean indicating whether a conflict has occurred
      */
-    public boolean UpdateWatchedLiterals(Integer added_literal, List<Integer> partial_assignment, Set<Integer> new_units){
+    public boolean UpdateWatchedLiterals(Integer added_literal, List<Integer> partial_assignment, List<Integer> new_units){
 
 
         int affected_literal = -added_literal;
 
-        for(int affected_clause: Literal_To_Clause.get(affected_literal)){
-            
+        
+        for( int i = Literal_To_Clause.get(affected_literal).size()-1; i >= 0; i--){
+        
+            Integer affected_clause = Literal_To_Clause.get(affected_literal).get(i);
             int watch_literal_2 = 0;
             
             if (affected_literal == Clause_To_Literal.get(affected_clause)[0]){
@@ -100,6 +102,7 @@ public class TwoWatch {
                                                                         affected_clause,
                                                                         partial_assignment
                                                                     );
+
             
             // conflict has occured
             if( two_watch_update[0] == 1 ){
@@ -108,7 +111,12 @@ public class TwoWatch {
             } 
             // check if new unit literal found 
             else if( two_watch_update[1] != 0 ){
-                new_units.add( two_watch_update[1] );
+
+                // if we havent already found this unit literal already, add it to the set of new units
+                if ( !new_units.contains(two_watch_update[1]) ){
+                    new_units.add( two_watch_update[1] );
+                }
+
             }
           
 
@@ -154,7 +162,6 @@ public class TwoWatch {
                                         Integer affected_clause_index,
                                         List<Integer> partial_assignment){
 
-
         for(int l: clause){
 
             // this where we find a new watch literal 
@@ -186,6 +193,8 @@ public class TwoWatch {
         }
 
         if( partial_assignment.contains(-watched_literal2)){
+
+            
             // a conflict has occurred
             return new int[]{1,0};
         }
@@ -199,42 +208,5 @@ public class TwoWatch {
 
 
 
-    // public  void UpdateWatchedLiterals(Integer affected_literal ){
-    //     List<Integer> affected_clauses= new ArrayList<Integer>(Literal_To_Clause.get(affected_literal));
-
-    //     for( Integer clause_index: affected_clauses){
-
-    //         Integer watch_literal_1 = Clause_To_Literal.get(clause_index)[0];
-    //         Integer watch_literal_2 = Clause_To_Literal.get(clause_index)[1];
-
-    //         Integer old_watch_literal_1 = watch_literal_1;
-    //         Integer old_watch_literal_2 = watch_literal_2;
-
-    //         // if the watched literal has just been made false or
-    //         // if the watched literal does not have a value then try to switch it
-    //         if( watch_literal_1==0 || watch_literal_1==affected_literal){
-    //             watch_literal_1 = SwitchWatchLiteral(watch_literal_1, watch_literal_2, Formula.Clauses.get(clause_index));
-    //         }
-    //         if(watch_literal_2==0 || watch_literal_2==affected_literal){
-    //             watch_literal_2 = SwitchWatchLiteral(watch_literal_2, watch_literal_1, Clauses.get(clause_index));
-    //         }
-
-
-    //         // if watch literals have changed
-    //         // update data structure
-    //         if( watch_literal_1!= old_watch_literal_1){
-    //             Literal_To_Clause.get(old_watch_literal_1).remove(clause_index);
-    //             Literal_To_Clause.get(watch_literal_1).add(clause_index);
-    //             Clause_To_Literal.get(clause_index)[0] = watch_literal_1;
-    //         }
-
-    //         if( watch_literal_2!= old_watch_literal_2){
-    //             Literal_To_Clause.get(old_watch_literal_2).remove(clause_index);
-    //             Literal_To_Clause.get(watch_literal_2).add(clause_index);
-    //             Clause_To_Literal.get(clause_index)[1] = watch_literal_2;
-    //         }
-    //     }
-
-    // } 
 
 }
