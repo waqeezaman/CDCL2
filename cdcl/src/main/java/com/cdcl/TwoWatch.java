@@ -77,7 +77,10 @@ public class TwoWatch {
      * @param new_units , pass in empty list, will be filled with new unit literals that are found, if a conflict occurs, this can be ignored
      * @return  , boolean indicating whether a conflict has occurred
      */
-    public boolean UpdateWatchedLiterals(Integer added_literal, List<Integer> partial_assignment, List<Integer> new_units){
+    public HashSet<Integer> UpdateWatchedLiterals(  Integer added_literal,
+                                                    List<Integer> partial_assignment,
+                                                    List<Integer> new_units,
+                                                    List<Integer> inference_clauses){
 
 
         int affected_literal = -added_literal;
@@ -107,15 +110,19 @@ public class TwoWatch {
             // conflict has occured
             if( two_watch_update[0] == 1 ){
                 new_units.clear();  // cleared to make sure these are not used at all !!
-                return true;
+                inference_clauses.clear();
+
+                // returning clause responsible for conflict 
+                return Formula.getClauses().get(  affected_clause );
             } 
             // check if new unit literal found 
             else if( two_watch_update[1] != 0 ){
 
                 // if we havent already found this unit literal already, add it to the set of new units
-                if ( !new_units.contains(two_watch_update[1]) ){
+                // if ( !new_units.contains(two_watch_update[1]) ){
                     new_units.add( two_watch_update[1] );
-                }
+                    inference_clauses.add( affected_clause );
+                // }
 
             }
           
@@ -134,7 +141,7 @@ public class TwoWatch {
    
 
         // no conflict found 
-        return false;
+        return null;
 
 
     }
