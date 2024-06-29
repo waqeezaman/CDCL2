@@ -77,10 +77,10 @@ public class TwoWatch {
      * @param new_units , pass in empty list, will be filled with new unit literals that are found, if a conflict occurs, this can be ignored
      * @return  , boolean indicating whether a conflict has occurred
      */
-    public HashSet<Integer> UpdateWatchedLiterals(  Integer added_literal,
+    public Integer UpdateWatchedLiterals(  Integer added_literal,
                                                     List<Integer> partial_assignment,
                                                     List<Integer> new_units,
-                                                    List<Integer> inference_clauses){
+                                                    HashMap<Integer, List<Integer> > literal_to_inference_clauses){
 
 
         int affected_literal = -added_literal;
@@ -109,20 +109,25 @@ public class TwoWatch {
             
             // conflict has occured
             if( two_watch_update[0] == 1 ){
-                new_units.clear();  // cleared to make sure these are not used at all !!
-                inference_clauses.clear();
+               
+                
 
                 // returning clause responsible for conflict 
-                return Formula.getClauses().get(  affected_clause );
+                return affected_clause;
             } 
+
             // check if new unit literal found 
             else if( two_watch_update[1] != 0 ){
 
                 // if we havent already found this unit literal already, add it to the set of new units
-                // if ( !new_units.contains(two_watch_update[1]) ){
+                if ( !new_units.contains(two_watch_update[1]) ){
                     new_units.add( two_watch_update[1] );
-                    inference_clauses.add( affected_clause );
-                // }
+                }
+                // System.out.println("UNIT FOUND: " + two_watch_update[1]);
+
+                // System.out.println("LIT TO INF: " + literal_to_inference_clauses.toString());
+                // add the clause in which it was found, as in inference clause
+                literal_to_inference_clauses.get(two_watch_update[1]).add(affected_clause);
 
             }
           
@@ -213,6 +218,44 @@ public class TwoWatch {
         return new int[]{0,0};
     }
 
+
+
+    public void AddLearnedClause( Integer clause_index, Integer last_decision){
+
+        
+
+
+        // clause is a unit clause 
+        if( Formula.getClauses().get(clause_index).size() == 1 ){
+            
+            Clause_To_Literal.put(clause_index, new int[]{last_decision,last_decision} );
+            Literal_To_Clause.get(last_decision).add(clause_index);
+        }
+        else{
+
+            Integer other_literal = 0; 
+
+            for (Integer literal : Formula.getClauses().get(clause_index)) {
+                
+                if ( literal!= last_decision){
+                    other_literal = literal;
+                    break;
+                }
+
+            }
+
+
+            Clause_To_Literal.put(clause_index, new int[]{last_decision, other_literal});
+            
+            Literal_To_Clause.get(last_decision).add( clause_index);
+            Literal_To_Clause.get(other_literal).add(clause_index);
+
+
+
+        }
+
+
+    }
 
 
 

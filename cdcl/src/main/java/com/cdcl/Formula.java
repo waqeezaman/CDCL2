@@ -106,6 +106,18 @@ public class Formula {
 
 
 
+        /**
+         * @param clause , clause to be added to the formula 
+         * @return returns the index of the clause added
+         */
+        public Integer AddClause(HashSet<Integer> clause){
+
+
+            Clauses.add(clause);
+
+            return Clauses.size()-1;
+        }
+
 
         public void OutputClauses(){
             System.out.println("CLAUSES");
