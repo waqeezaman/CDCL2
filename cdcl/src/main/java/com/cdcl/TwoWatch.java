@@ -1,11 +1,11 @@
 package com.cdcl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+
 
 
 public class TwoWatch {
@@ -78,7 +78,7 @@ public class TwoWatch {
      * @return  , boolean indicating whether a conflict has occurred
      */
     public Integer UpdateWatchedLiterals(  Integer added_literal,
-                                                    List<Integer> partial_assignment,
+                                                    HashSet<Integer> partial_assignment_set,
                                                     List<Integer> new_units,
                                                     HashMap<Integer, List<Integer> > literal_to_inference_clauses){
 
@@ -103,7 +103,7 @@ public class TwoWatch {
                                                                         watch_literal_2,
                                                                         Formula.getClauses().get(affected_clause),
                                                                         affected_clause,
-                                                                        partial_assignment
+                                                                        partial_assignment_set
                                                                     );
 
             
@@ -123,9 +123,7 @@ public class TwoWatch {
                 if ( !new_units.contains(two_watch_update[1]) ){
                     new_units.add( two_watch_update[1] );
                 }
-                // System.out.println("UNIT FOUND: " + two_watch_update[1]);
-
-                // System.out.println("LIT TO INF: " + literal_to_inference_clauses.toString());
+                
                 // add the clause in which it was found, as in inference clause
                 literal_to_inference_clauses.get(two_watch_update[1]).add(affected_clause);
 
@@ -172,12 +170,12 @@ public class TwoWatch {
                                         int watched_literal2,
                                         HashSet<Integer> clause,
                                         Integer affected_clause_index,
-                                        List<Integer> partial_assignment){
+                                        HashSet<Integer> partial_assignment_set){
 
         for(int l: clause){
 
             // this where we find a new watch literal 
-            if( !partial_assignment.contains(-l) && watched_literal1!=l && watched_literal2!=l ){
+            if( !partial_assignment_set.contains(-l) && watched_literal1!=l && watched_literal2!=l ){
                 
                 // need to update the two watch structure here 
                 Literal_To_Clause.get(watched_literal1).remove(affected_clause_index);
@@ -198,13 +196,13 @@ public class TwoWatch {
 
         // check that watch literal 2 is unassigned, if so this clause is now a unit clause
         // since all literals must be false except watch literal 2
-        if( !partial_assignment.contains(watched_literal2) && !partial_assignment.contains(-watched_literal2) ){
+        if( !partial_assignment_set.contains(watched_literal2) && !partial_assignment_set.contains(-watched_literal2) ){
 
             // this is a new unit clause
             return new int[]{0,watched_literal2};
         }
 
-        if( partial_assignment.contains(-watched_literal2)){
+        if( partial_assignment_set.contains(-watched_literal2)){
 
             
             // a conflict has occurred
