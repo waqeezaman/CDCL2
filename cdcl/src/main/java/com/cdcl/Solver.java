@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-
+import java.util.PriorityQueue;
 import java.util.Stack;
 
 import java.util.Random;
@@ -29,6 +29,7 @@ public class Solver {
 
     private List<Integer> partialAssignment = new ArrayList<Integer>();
     private HashSet<Integer> partialAssignmentSet = new HashSet<>();
+    private int sizeOfPartialAssignmentWithoutAnyDecisions = 0;
 
 
     private TwoWatch twoWatch;
@@ -36,6 +37,7 @@ public class Solver {
     
     
     private Integer conflictClause = null;
+    private int numberOfConflicts = 0; 
 
     private HashMap<Integer, List<Integer> > LiteralToImplicationClause = new HashMap<>(); 
 
@@ -43,11 +45,19 @@ public class Solver {
 
     private Stack<Integer> decisionStack = new Stack<>();
 
- 
+    private PriorityQueue<Integer> vsidsPriorityQueue = new PriorityQueue<>();
+    private HashMap<Integer,Float> vsidsScores = new HashMap<>();
+
+    
+
+    
 
 
 
     public Solver(String path)throws Exception{
+
+        
+
         rand = new Random(seed);
 
         formula = Formula_IO.ReadFormula(new FileReader(path)); 
@@ -59,11 +69,8 @@ public class Solver {
             }
        }
 
-       if( verbosity>0){
-            for (int i = 0; i < formula.getClauses().size(); i++) {
-                    System.out.println("CLAUSE: "+ i + " ===  " + formula.getClauses().get(i));
-            }
-        }
+      
+        initialiseVSIDS();
 
     }
 
@@ -79,6 +86,7 @@ public class Solver {
             }
        }
 
+       initialiseVSIDS();
      
     }
 
@@ -88,12 +96,15 @@ public class Solver {
     public String Solve(){
 
         
-
+        // propogate initial units 
         for (Integer initial_unit : formula.getInitialUnits()) {
             UnitPropogate(initial_unit);
             if (conflictClause != null) return UNSATISFIABLE;
         }
-        
+        sizeOfPartialAssignmentWithoutAnyDecisions = partialAssignment.size();
+
+        if (verbosity>0) System.out.println("INITIAL PARTIAL ASSIGNMENT  : " + partialAssignment.toString() );
+
 
 
         
@@ -102,10 +113,7 @@ public class Solver {
 
 
         do {
-            
             // whilst there a conflict keep on backjumping units and reversing decisions
-
-            
             while( conflictClause != null ){
                 
 
@@ -118,16 +126,19 @@ public class Solver {
 
                 AnalyseConflict();
 
-
-
             }
 
-
+            if(numberOfConflicts%256 ==0){
+                decayVSIDS();
+            }
+            
 
             if (partialAssignment.size() != formula.getNumVariables()){
 
                 // make decision on unassigned variables
                 Integer decision = Decide();
+
+                if(verbosity>0)System.out.println("DECISION MADE: " + decision);
 
                 LiteralToImplicationClause.get(decision).clear();
 
@@ -145,7 +156,7 @@ public class Solver {
             
             }
 
-
+            // if (numberOfConflicts>3)System.exit(0);
         } while ( partialAssignment.size() != formula.getNumVariables() | conflictClause!=null );
 
         
@@ -156,7 +167,8 @@ public class Solver {
 
     private int Decide(){
 
-        return decideRandom();
+        // return decideRandom();
+        return decideVSIDS();
     }
 
     private int decideRandom(){
@@ -173,6 +185,7 @@ public class Solver {
 
         return random_literal;
     }
+
 
     private boolean isAssigned(Integer literal){
         return partialAssignmentSet.contains(literal) | partialAssignmentSet.contains(-literal);
@@ -262,6 +275,8 @@ public class Solver {
 
     private void AnalyseConflict(){
 
+        numberOfConflicts+=1;
+
         Integer lastDecision = decisionStack.peek();
         Integer lastDecisionLevel  = DecisionToLevel.get( lastDecision );
         Integer secondLastDecision = null;
@@ -322,7 +337,8 @@ public class Solver {
         }
 
 
-
+        //update VSIDS data structures 
+        updateVSIDS(learnedClause);
 
         // reverse decisions 
         ReverseDecisions( secondLastDecision);
@@ -334,6 +350,12 @@ public class Solver {
         // unit propgate with reverse of last decision 
         UnitPropogate(-lastDecision);
 
+        if(decisionStack.size()==0){
+            sizeOfPartialAssignmentWithoutAnyDecisions = partialAssignment.size();
+        }
+        else{
+            DecisionToLevel.put( decisionStack.peek(), partialAssignment.size() -1 ) ;
+        }
         
     }
 
@@ -343,8 +365,12 @@ public class Solver {
 
         // there is no second to last decision, and we are reversing the first decision
         if(second_last_decision == null ){
-            for (int i = partialAssignment.size()-1 ; i > formula.getInitialUnits().size()-1 ; i--) {
-                
+            
+            if(verbosity>0)System.out.println("REVERSING FIRST DECISION" );
+
+            // for (int i = partialAssignment.size()-1 ; i > formula.getInitialUnits().size()-1 ; i--) {
+            for (int i = partialAssignment.size()-1 ; i > sizeOfPartialAssignmentWithoutAnyDecisions-1 ; i--) {
+
                 Integer literal_to_remove = partialAssignment.removeLast();
                 partialAssignmentSet.remove(literal_to_remove);
                 // clear all inferences for this literal 
@@ -388,7 +414,8 @@ public class Solver {
 
 
     private void AddLearnedClause(HashSet<Integer> learned_clause, Integer last_decision){
-        
+        if (verbosity>0) System.out.println("LEARNED CLAUSE : " + learned_clause.toString() );
+
 
         // add to formula 
         Integer new_clause_index = formula.AddClause(learned_clause);
@@ -405,7 +432,60 @@ public class Solver {
 
   
 
+    private void initialiseVSIDS(){
+        for (int i = 1; i <= formula.getNumVariables(); i++) {
+            
+            float occurences = 0; 
 
+            for (HashSet<Integer> clause : formula.getClauses()) {
+                if (clause.contains(i) | clause.contains(-i)) occurences+=1;
+            }
+
+            vsidsScores.put(i, occurences);
+            vsidsPriorityQueue.add(i);
+
+        }
+
+        
+    }
+
+    private void updateVSIDS(HashSet<Integer> clause){
+
+        for (Integer literal : clause) {
+            literal = Math.abs(literal);
+
+            vsidsScores.put( literal , vsidsScores.get(literal)+1 );
+            
+        }
+    }
+
+    private void decayVSIDS(){
+        
+        for (int i = 1; i <= formula.getNumVariables(); i++) {
+            vsidsScores.put(i, vsidsScores.get(i)/256 );
+        
+        }
+
+    }
+
+    private int decideVSIDS(){
+
+        // int decision;
+        if (verbosity>0) System.out.println("PARTIAL ASSIGNMENT : " + partialAssignment.toString() );
+
+        if (verbosity>0) System.out.println("VSIDS HASHMAP : " + vsidsScores.toString() );
+
+
+        for (Integer decision : vsidsPriorityQueue) {
+            if( !isAssigned(decision) && !isAssigned(-decision)){
+                return decision;
+            }
+        }
+  
+        return 0;
+
+        
+    }
 
     
 
@@ -420,8 +500,8 @@ public class Solver {
         seed=0;
         if (verbosity>0) System.out.println("SEED : " + seed );
 
-        // Solver solver = new Solver("/home/waqee/CDCL2/cdcl/dpll_tests/simple/prop_rnd_945782_v_3_c_12_vic_2_4.cnf");
-        // Solver solver = new Solver("/home/waqee/CDCL2/cdcl/dpll_tests/hard/prop_rnd_543508_v_128_c_544_vic_3_3.cnf");
+        // Solver solver = new Solver("/home/waqee/CDCL2/cdcl/dpll_tests/simple/prop_rnd_711861_v_6_c_25_vic_2_4.cnf");
+        // Solver solver = new Solver("/home/waqee/CDCL2/cdcl/dpll_tests/medium/prop_rnd_626560_v_13_c_55_vic_3_3.cnf");
 
         Solver solver = new Solver(new InputStreamReader(System.in));
 
