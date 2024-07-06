@@ -38,6 +38,8 @@ public class Solver {
     
     private Integer conflictClause = null;
     private int numberOfConflicts = 0; 
+    
+
 
     private HashMap<Integer, List<Integer> > LiteralToImplicationClause = new HashMap<>(); 
 
@@ -47,7 +49,8 @@ public class Solver {
 
     private PriorityQueue<Integer> vsidsPriorityQueue = new PriorityQueue<>();
     private HashMap<Integer,Float> vsidsScores = new HashMap<>();
-
+    private int vsidsDecayInterval = 256;
+    private float vsidsDecayRate = 0.5f;
     
 
     
@@ -128,9 +131,9 @@ public class Solver {
 
             }
 
-            if(numberOfConflicts%256 ==0){
-                decayVSIDS();
-            }
+            
+            decayVSIDS();
+            
             
 
             if (partialAssignment.size() != formula.getNumVariables()){
@@ -169,6 +172,17 @@ public class Solver {
 
         // return decideRandom();
         return decideVSIDS();
+    }
+
+    private void Forget(){
+        // yet to be implemented
+        // perhaps requires rethinking how we reference clauses :(
+
+    }
+
+    private void Restart(){
+        // reverse decision to null decision level, or the 0th decision level
+        ReverseDecisions(null);
     }
 
     private int decideRandom(){
@@ -460,10 +474,12 @@ public class Solver {
     }
 
     private void decayVSIDS(){
-        
-        for (int i = 1; i <= formula.getNumVariables(); i++) {
-            vsidsScores.put(i, vsidsScores.get(i)/256 );
-        
+        if(numberOfConflicts % vsidsDecayInterval ==0){
+
+            for (int i = 1; i <= formula.getNumVariables(); i++) {
+                vsidsScores.put(i, vsidsScores.get(i)/vsidsDecayRate );
+            
+            }
         }
 
     }
