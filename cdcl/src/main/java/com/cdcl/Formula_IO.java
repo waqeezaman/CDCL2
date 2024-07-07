@@ -14,70 +14,71 @@ public class Formula_IO {
 
     public static Formula ReadFormula(Reader input_reader) throws Exception{
 
-    //  public static Formula ReadFormula(String path) throws Exception{
-
-        // currently filepath provided, override method to include input stream from cat console
-        // FileReader filein = new FileReader(path);
-
-
-        // var in = new BufferedReader(new InputStreamReader(System.in));
-        var in = new BufferedReader(input_reader);
-
-
-        int numvars=0;
-
-        List<HashSet<Integer>> clauses = new ArrayList< HashSet<Integer>>();
         
-        while (true) {
-            String line = in.readLine();
-            if (line == null) break;
-                if (line.charAt(0) =='c'){
-                    continue;
-                }
-                if( line.contains("p cnf")){
-
-                    String clauses_vars = line.replace("p cnf","");
-                    clauses_vars = clauses_vars.trim();
-                    // String clauses = clauses_vars.split(" ")[1];
-                    String vars = clauses_vars.split(" ")[0];
-                    
-                    numvars = Integer.parseInt(vars);
-
-                    break;
-                }
-
-
-                
             
-        }
+        
+        
+            var in = new BufferedReader(input_reader);
 
-        while (true) {
 
-            String line = in.readLine();
+            int numvars=0;
 
-            if (line == null) break;
+            List<HashSet<Integer>> clauses = new ArrayList< HashSet<Integer>>();
             
-                String[] vars_in_clause = line.split(" ");
-                // System.out.println(line);
-                HashSet<Integer> clause = new HashSet<Integer>();
+            while (true) {
+                String line = in.readLine();
+                if (line == null) break;
+                    if (line.charAt(0) =='c'){
+                        continue;
+                    }
+                    if( line.contains("p cnf")){
 
-                for(String s: vars_in_clause){
-                    if( Integer.parseInt(s)==0){
+                        String clauses_vars = line.replace("p cnf","");
+                        clauses_vars = clauses_vars.trim();
+                        // String clauses = clauses_vars.split(" ")[1];
+                        String vars = clauses_vars.split(" ")[0];
+                        
+                        numvars = Integer.parseInt(vars);
+
                         break;
                     }
-                    clause.add( Integer.parseInt(s));
-                }
-                clauses.add(clause);
 
 
+                    
                 
-            
-        }
+            }
 
-        in.close();
+            while (true) {
 
-        return new Formula(clauses, numvars);
+                String line = in.readLine();
+
+                if (line == null) break;
+                
+                    String[] vars_in_clause = line.split(" ");
+                    // System.out.println(line);
+                    HashSet<Integer> clause = new HashSet<Integer>();
+
+                    for(String s: vars_in_clause){
+                        if( Integer.parseInt(s)==0){
+                            break;
+                        }
+                        clause.add( Integer.parseInt(s));
+                    }
+                    clauses.add(clause);
+
+
+                    
+                
+            }
+
+            in.close();
+
+            return new Formula(clauses, numvars);
+
+       
     }
+
+
 
 
 

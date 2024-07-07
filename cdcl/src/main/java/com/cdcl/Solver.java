@@ -1,6 +1,7 @@
 package com.cdcl;
 
 import java.io.FileReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.util.ArrayList;
@@ -55,32 +56,11 @@ public class Solver {
 
     
 
-
-
-    public Solver(String path)throws Exception{
-
-        
+    public Solver( Formula formula){
+        this.formula = formula;
 
         rand = new Random(seed);
 
-        formula = Formula_IO.ReadFormula(new FileReader(path)); 
-        twoWatch = new TwoWatch(formula);
-
-       for (int i = -formula.getNumVariables(); i <= formula.getNumVariables(); i++) {
-            if (i !=0){
-                LiteralToImplicationClause.put(i, new ArrayList<Integer>());
-            }
-       }
-
-      
-        initialiseVSIDS();
-
-    }
-
-    public Solver( Reader input_reader) throws Exception{
-        rand = new Random(seed);
-
-        formula = Formula_IO.ReadFormula(input_reader);
         twoWatch = new TwoWatch(formula);
 
         for (int i = -formula.getNumVariables(); i <= formula.getNumVariables(); i++) {
@@ -90,19 +70,33 @@ public class Solver {
        }
 
        initialiseVSIDS();
-     
+
     }
 
 
+ 
+
+    
 
 
-    public String Solve(){
+    public boolean getSatisfiable(){
+        return Solve()!=null;
+    }
+
+   
+
+  
+
+    
+
+
+    public List<Integer> Solve(){
 
         
         // propogate initial units 
         for (Integer initial_unit : formula.getInitialUnits()) {
             UnitPropogate(initial_unit);
-            if (conflictClause != null) return UNSATISFIABLE;
+            if (conflictClause != null) return null;
         }
         sizeOfPartialAssignmentWithoutAnyDecisions = partialAssignment.size();
 
@@ -120,7 +114,7 @@ public class Solver {
             while( conflictClause != null ){
                 
 
-                if( decisionStack.size() == 0) return UNSATISFIABLE;
+                if( decisionStack.size() == 0) return null;
 
 
                 // analyse conflict 
@@ -164,7 +158,7 @@ public class Solver {
 
         
 
-        return SATISFIABLE;
+        return partialAssignment;
     }
 
 
@@ -516,12 +510,23 @@ public class Solver {
         seed=0;
         if (verbosity>0) System.out.println("SEED : " + seed );
 
-        // Solver solver = new Solver("/home/waqee/CDCL2/cdcl/dpll_tests/simple/prop_rnd_711861_v_6_c_25_vic_2_4.cnf");
-        // Solver solver = new Solver("/home/waqee/CDCL2/cdcl/dpll_tests/medium/prop_rnd_626560_v_13_c_55_vic_3_3.cnf");
+        Formula formula = Formula_IO.ReadFormula(new InputStreamReader(System.in));
+        // Formula formula = Formula_IO.ReadFormula(new FileReader("/home/waqee/CDCL2/cdcl/dpll_tests/simple/prop_rnd_711861_v_6_c_25_vic_2_4.cnf"));
 
-        Solver solver = new Solver(new InputStreamReader(System.in));
+      
+        
 
-        System.out.println(solver.Solve());
+        // solver.formula.OuputToFile("/home/waqee/CDCL2/cdcl/hard_output.cnf");
+
+        Solver solver = new Solver(formula);
+
+        if (solver.getSatisfiable()){
+            System.out.println(SATISFIABLE);
+        }
+        else{
+            System.out.println(UNSATISFIABLE);
+        }
+        // System.out.println(solver.Solve());
         
 
     } 

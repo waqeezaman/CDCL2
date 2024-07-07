@@ -1,5 +1,7 @@
 package com.cdcl;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -128,4 +130,42 @@ public class Formula {
             System.out.println("=============================================================================");
         }
 
+
+        public void OuputToFile(String filepath){
+
+            try {
+
+                FileWriter file = new FileWriter(filepath);
+
+                // write initial information about number of clauses and number of variables
+                file.write("c created by me \n");
+
+                file.write("p cnf " + NumVariables + " " + Clauses.size() + "\n");
+            
+
+
+                // write each clause to file
+                for (HashSet<Integer> clause : Clauses) {
+                    String clause_string = "";
+                    for (Integer literal : clause) {
+                        clause_string += literal.toString() + " ";
+                    }    
+                    clause_string += "0\n";
+
+                    file.write(clause_string);
+                }
+
+
+                file.close();
+
+
+            } catch (IOException e) {
+                
+
+                System.out.println("ERROR: File unable to be created");
+            }
+            
+
+
+        }
 }
