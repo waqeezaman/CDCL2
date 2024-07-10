@@ -14,7 +14,10 @@ public class Formula {
 
         private List<Integer> InitialUnits = new ArrayList<>();
 
+        private int InitialSize;
 
+
+       
 
         public Formula(List<HashSet<Integer>> clauses, int numvars){
 
@@ -35,11 +38,9 @@ public class Formula {
             }
 
             InitialUnits.addAll(units);
+            InitialSize = Clauses.size();
 
         }
-
-       
-
 
 
         private void eliminateTautologies(){
@@ -94,6 +95,10 @@ public class Formula {
         }
 
 
+        public void Remove(int index){
+            Clauses.remove(index);
+        }
+
         public List<HashSet<Integer>> getClauses(){
             return Clauses;
         }
@@ -106,7 +111,15 @@ public class Formula {
             return InitialUnits;
         }
 
+        public int getInitialSize(){
+            return InitialSize;
+        }
 
+        public void removeLearntClauses(){
+
+            Clauses = Clauses.subList(0, InitialSize);
+
+        }
 
         /**
          * @param clause , clause to be added to the formula 
