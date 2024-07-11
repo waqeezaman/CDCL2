@@ -59,14 +59,6 @@ public class Formula {
 
 
         public static boolean isTautology(HashSet<Integer> clause){
-            // for (int var =1; var<=NumVariables;var++){
-
-            //     if (clause.contains(var) && clause.contains(-var)){
-            //         return true;
-            //     }
-            // }
-            // return false;
-
 
             Iterator<Integer> iterator = clause.iterator();
 

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-import com.cdcl.*;
+
 
 public class Formula_IO {
 
@@ -35,7 +35,7 @@ public class Formula_IO {
 
                         String clauses_vars = line.replace("p cnf","");
                         clauses_vars = clauses_vars.trim();
-                        // String clauses = clauses_vars.split(" ")[1];
+                        
                         String vars = clauses_vars.split(" ")[0];
                         
                         numvars = Integer.parseInt(vars);

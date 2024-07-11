@@ -5,16 +5,17 @@ import java.io.FileReader;
 import java.io.InputStreamReader;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Stack;
-import java.util.stream.IntStream;
+
 import java.util.Random;
+
+import org.apache.commons.cli.*;
+
 
 
 
@@ -22,12 +23,26 @@ import java.util.Random;
 public class Solver {
 
     private static int verbosity = 0;
-    private static int seed = new Random().nextInt(); 
+    private static Integer seed = null; 
     private static Random rand;
+    private static String formulaPath;
+
+    public static int restartGeometricRate = 2;
+    public static int numberOfAllowedLearntClauses = 1000; 
+    public static String decisionFunction = "vsids";
+
+
+    public static int vsidsDecayInterval = 1;
+    public static float vsidsBumpRate= 1.2f;
+    public static float vsidsDecayRate = 0.95f;
+    public static float vsidsRandomDecideProbability=0.1f;
+
+
 
     final static String SATISFIABLE = "SATISFIABLE";
     final static String UNSATISFIABLE = "UNSATISFIABLE";
     
+
     private Formula formula;
 
     private List<Integer> partialAssignment = new ArrayList<Integer>();
@@ -37,8 +52,6 @@ public class Solver {
 
     private TwoWatch twoWatch;
 
-    
-    
     private Integer conflictClause = null;
     private int numberOfConflicts = 0; 
     
@@ -47,28 +60,27 @@ public class Solver {
     private HashMap<Integer, List<Integer> > LiteralToImplicationClause = new HashMap<>(); 
 
     private HashMap<Integer,Integer> DecisionToLevel = new HashMap<Integer,Integer>();
-
     private Stack<Integer> decisionStack = new Stack<>();
 
     private PriorityQueue<Integer> vsidsPriorityQueue = new PriorityQueue<>();
     private HashMap<Integer,Float> vsidsScores = new HashMap<>();
 
-    private static int vsidsDecayInterval = 1;
-    private static float vsidsBumpRate= 1.2f;
-    private static float vsidsDecayRate = 0.95f;
-
     private int restartCounter = 0;
-    
-    
-    private static int numberOfAllowedLearntClauses = 1000; 
 
-  
+
     
+
+
 
     public Solver( Formula formula){
         this.formula = formula;
 
-        rand = new Random(seed);
+        if(seed!=null){
+            rand = new Random(seed);
+        }
+        else{
+            rand = new Random();
+        }
 
         twoWatch = new TwoWatch(formula);
 
@@ -83,6 +95,83 @@ public class Solver {
     }
 
 
+
+    /**
+     * 
+     *  Sets parameters for solver
+     *  if argument is left null the default value is used
+     * 
+     * @param vsids_decay_interval , default: 1
+     * @param vsids_bump_rate , defualt: 1.2
+     * @param vsids_decay_rate  , default: 0.95
+     * @param vsids_random_decide_probability , default: 0.1
+     * @param restart_geometric_rate , default: 2
+     * @param max_learnt_clauses , default: 1000
+     * @param decide_function , either "vsids" or "random", default: vsids
+     * @param random_seed , default: null, i.e a random seed
+     * @param verbose ,  0 for no output, 1 for some output, default: 0 
+     */
+    public static void setConfig(Integer vsids_decay_interval,
+                                 Float vsids_bump_rate,
+                                 Float vsids_decay_rate,
+                                 Float vsids_random_decide_probability,
+                                 Integer restart_geometric_rate,
+                                 Integer max_learnt_clauses,
+                                 String decide_function,
+                                 Integer random_seed,
+                                 Integer verbose
+                                ){
+        
+
+        if( vsids_decay_interval!=null ) vsidsDecayInterval = vsids_decay_interval;
+        if( vsids_bump_rate!=null ) vsidsBumpRate = vsids_bump_rate;
+        if( vsids_decay_rate!=null ) vsidsDecayRate = vsids_decay_rate;
+        if( vsids_random_decide_probability!=null ) vsidsRandomDecideProbability = vsids_random_decide_probability;
+
+
+        if( restart_geometric_rate!=null ) restartGeometricRate = restart_geometric_rate;
+        if( max_learnt_clauses!=null ) numberOfAllowedLearntClauses = max_learnt_clauses;
+
+
+        if("random".equals(decide_function)) decisionFunction=decide_function;
+
+
+        if(random_seed!=null)seed = random_seed;
+        if(verbose!=null)verbosity=verbose;
+
+
+    }
+
+
+
+    /**
+     * outputs current solver config settings
+     */
+    public static void outputConfig(){
+        System.out.println("\n SOLVER CONFIG \n");
+        System.out.println("Decision Function: " + decisionFunction );
+        System.out.println("Random Seed: "+ seed );
+        System.out.println("Verbosity: "+verbosity );
+        System.out.println("Restart Geometric Rate: "+ restartGeometricRate );
+
+        System.out.println("Number of Allowed Learnt Clauses: "+ numberOfAllowedLearntClauses );
+
+        System.out.println("VSIDS Decay Interval: "+ vsidsDecayInterval );
+        System.out.println("VSIDS Bump Rate: "+ vsidsBumpRate );
+        System.out.println("VSIDS Decay Rate: "+ vsidsDecayRate );
+        System.out.println("VSIDS Random Decide Probability: "+ vsidsRandomDecideProbability );
+
+    }
+    
+
+
+    /**
+     * inverts the current solution and adds it to the formula, then returns a solution to this new formula
+     *  
+     * @param formula , current formula
+     * @param current_solution, solution that has just been found, we want a new solution unique to this one
+     * @return a new solution 
+     */
     private static List<Integer> getNextSolution(Formula formula, List<Integer> current_solution){
 
 
@@ -105,6 +194,11 @@ public class Solver {
 
 
 
+    /**
+     * @param formula
+     * @param N
+     * @return first N solutions of the formula
+     */
     public static List<List<Integer>> getNSolutions(Formula formula, int N){
         
         Solver solver = new Solver(formula);
@@ -127,6 +221,10 @@ public class Solver {
     }
 
 
+    /**
+     * @param formula
+     * @return all the solutions to the formula
+     */
     public static List<List<Integer>> getAllSolutions(Formula formula){
         
         Solver solver = new Solver(formula);
@@ -148,6 +246,10 @@ public class Solver {
     }
 
     
+    /**
+     * @param formula
+     * @return true if the formula is satisfiable, false otherwise
+     */
     public static boolean getSatisfiable(Formula formula){
 
         Solver solver = new Solver(formula);
@@ -155,13 +257,12 @@ public class Solver {
         return solver.Solve()!=null;
     }
 
-   
-
-  
-
-    
 
 
+    /**
+     * runs cdcl algorithm 
+     * @return a solution to the formula
+     */
     public List<Integer> Solve(){
 
         
@@ -191,7 +292,7 @@ public class Solver {
 
             // forgets all clauses and restarts 
             // frequency of this follows a geometric progression
-            if(Math.pow(2, restartCounter) <= numberOfConflicts){
+            if(Math.pow(restartGeometricRate, restartCounter) <= numberOfConflicts){
                 Forget();
                 Restart();
                 restartCounter+=1;
@@ -218,12 +319,20 @@ public class Solver {
     
 
 
+    /**
+     * picks a decision variable and adds it to the partial assignment
+     */
     private void Decide(){
 
         // make decision on unassigned variables
-        Integer decision = decideVSIDS();
+        Integer decision;
+        if(decisionFunction=="vsids"){
+            decision = decideVSIDS();
+        }else{
+            decision = decideRandom();
+        }
 
-
+        // if a literal has been decided, then it has not been implied by anything
         LiteralToImplicationClause.get(decision).clear();
 
         // add to partial assignment
@@ -238,14 +347,18 @@ public class Solver {
         
     }
 
-    // to be implemented later, potentially
+    
+    /**
+     * Currently forgets all learnt clauses,
+     * yet to be implemented fully
+     */
     private void Forget(){
         // yet to be implemented fully
         // perhaps requires rethinking how we reference clauses :(
 
         // at the moment, forget just forgets all clauses 
     
-
+        
         if(formula.getClauses().size() <= formula.getInitialSize() + numberOfAllowedLearntClauses) return;
 
 
@@ -265,6 +378,10 @@ public class Solver {
     }
 
  
+    /**
+     * removes clause from two watch structure
+     * @param clause_index , index of clause to remove
+     */
     private void removeClause(Integer clause_index){
 
         // remove from two watch structure
@@ -273,6 +390,9 @@ public class Solver {
     }
 
    
+    /**
+     * reverses partial assignment to the 0th decision level, the level at which no decisions have been taken
+     */
     private void Restart(){
         // reverse decision to null decision level, or the 0th decision level
         for (int i = partialAssignment.size()-1 ; i > sizeOfPartialAssignmentWithoutAnyDecisions-1 ; i--) {
@@ -311,8 +431,11 @@ public class Solver {
 
 
     /**
-     * @param initial_units , units to propogate
-     * @return returns true if a conlfict has occurred, false otherwise, also updates partial assignment 
+     * propgates units on to partial assignment 
+     * updates the implications of literals, as units are propogated
+     * sets conflictClause to index of conflicting clause if a conflict has been found 
+     * 
+     * @param initial_unit , unit to propogate 
      */
     private void UnitPropogate(int initial_unit){
 
@@ -324,16 +447,9 @@ public class Solver {
         
         while ( !units.isEmpty() ){
 
-            
-
-
             Integer unit_to_add = units.remove(0);
             
-            // if not assigned add to partial assignment 
             if (! isAssigned(unit_to_add)   ){
-
-          
-              
 
                 partialAssignment.add(unit_to_add);
                 partialAssignmentSet.add(unit_to_add);
@@ -342,24 +458,7 @@ public class Solver {
 
 
             }
-            // else{
-
-            //     // if literal is already assigned clear implication for its negation
-                
-            //     // if (partialAssignmentSet.contains(unit_to_add)){
-            //     //     LiteralToImplicationClause.get(unit_to_add).clear();
-            //     // }
-            //     // else{
-            //     //     LiteralToImplicationClause.get(-unit_to_add).clear();
-            //     // }
-
-
-            // }
-
-        
-
-
-
+            
             if ( conflictClause != null){
 
                 // clear units that have implications associated with them 
@@ -371,20 +470,12 @@ public class Solver {
                 return;
             }
 
-
-
-
-
-            
-
-
         }
 
         
 
 
     }
-
 
 
 
@@ -477,6 +568,10 @@ public class Solver {
     }
 
 
+    /**
+     * backtracks after a conflict has been found to a higher decision level
+     * @param second_last_decision , second last decision that was responsible for the conflict, null if only one decision was responsible
+     */
     private void ReverseDecisions( Integer second_last_decision){
 
 
@@ -560,7 +655,6 @@ public class Solver {
         for (Integer literal : clause) {
             literal = Math.abs(literal);
 
-            // vsidsScores.put( literal , vsidsScores.get(literal)+1 );
             vsidsScores.put( literal , vsidsScores.get(literal)*vsidsBumpRate );
             
         }
@@ -579,7 +673,7 @@ public class Solver {
 
     private int decideVSIDS(){
 
-        if( rand.nextFloat()<0.05) return decideRandom();
+        if( rand.nextFloat()<vsidsRandomDecideProbability) return decideRandom();
 
         for (Integer decision : vsidsPriorityQueue) {
             if( !isAssigned(decision) && !isAssigned(-decision)){
@@ -611,15 +705,87 @@ public class Solver {
     }
 
 
-    public static void setConfig(){
-
+    private static void displayHelp(Options options){
+        System.out.println("OPTIONS: \n \n ");
+        for (Option option : options.getOptions()) {
+            System.out.println(option.getValueSeparator()+option.getOpt() + " -- " + option.getLongOpt() + " -- " + option.getDescription()+"\n\n");
+        }
+            
     }
 
-    public static void main( String[] args) throws Exception{
+    private static void processArgs(String[] args){
+        Options options = new Options();
 
-                   
+
+        // add all options
+
+        options.addRequiredOption("p", "path", true, "REQUIRED: path to cnf file");
+
+        options.addOption("vrdp", "vsids random decision rate probability", true, "The rate at which the VSIDS decide function chooses a random literal, default: 0.1");
+        options.addOption("vdr", "vsids decay rate", true, "vsids decay rate default:0.95");
+        options.addOption("vdi", "vsids decay interval", true, "After how many conflicts the vsids scores of each variable decay default: 1");
+        options.addOption("vbr", "vsids bump rate", true, "The factor by which variables that are found in clauses leading to conflicts using the vsids heuristic, default: 1.2 ");
+        
+        options.addOption("seed", "seed", true, "random seed");
+
+        options.addOption("rgr", "restart geometric rate", true, "restarts occur every rgr^n conflicts, where n is incremented at every restart, default is 2");
+        options.addOption("df", "decision function", true, "decision function used for selecting decision literal, default: vsids");
+
+        options.addOption("lcm", "learnt clauses maximum", true, "maximum number of allowed learnt clauses, default: 1000");
+
+        options.addOption("v", "verbosity", false, "verbosity level, 0 for no output, 1 for some output. defualt: 0");
+        options.addOption("h", "help", false, "outputs available options and exits");
+
+        
+        
+        
+        CommandLineParser parser = new DefaultParser();
+        CommandLine cmd = null;
+
         
 
+        // if there is an error with the options entered, display help menu
+        try {
+            cmd = parser.parse( options, args);
+
+        } catch (MissingOptionException e) {
+
+            displayHelp(options);
+            System.exit(0);
+        }
+        catch(ParseException p){
+            displayHelp(options);
+            System.exit(0);
+        }
+
+
+        // display help menu 
+        if(cmd.hasOption("h")){
+            displayHelp(options);
+            System.exit(0);
+        }
+
+        
+        formulaPath = cmd.getOptionValue("p");
+
+
+        if(cmd.hasOption("vdi")) vsidsDecayInterval= Integer.valueOf(cmd.getOptionValue("vdi"));
+        if(cmd.hasOption("vbr")) vsidsBumpRate= Float.valueOf(cmd.getOptionValue("vbr"));
+        if(cmd.hasOption("vdr")) vsidsDecayRate= Float.valueOf(cmd.getOptionValue("vdr"));
+        if(cmd.hasOption("vrdp")) vsidsRandomDecideProbability= Float.valueOf(cmd.getOptionValue("vrdp"));
+
+        if(cmd.hasOption("rgr")) restartGeometricRate = Integer.valueOf(cmd.getOptionValue("rgr"));
+        if(cmd.hasOption("lcm")) numberOfAllowedLearntClauses = Integer.valueOf(cmd.getOptionValue("lcm"));
+
+        if(cmd.hasOption("df")) decisionFunction = cmd.getOptionValue("df");
+        if(cmd.hasOption("seed")) seed = Integer.valueOf(cmd.getOptionValue("seed"));
+        if(cmd.hasOption("v")) verbosity = 1;
+
+       
+    }
+
+    /*
+    public static void main( String[] args) throws Exception{
         if (verbosity>0) System.out.println("SEED : " + seed );
 
         Formula formula = Formula_IO.ReadFormula(new InputStreamReader(System.in));
@@ -634,10 +800,45 @@ public class Solver {
         
 
     } 
+     */
+
+
+
+  
+    public static void main( String[] args) throws Exception{
+
+                   
+        processArgs(args);
+
+
+
+
+        if (verbosity>0) outputConfig();
+
+
+        Formula formula = Formula_IO.ReadFormula(new FileReader(formulaPath));
+   
+
+        if (Solver.getSatisfiable(formula)){
+            System.out.println(SATISFIABLE);
+        }
+        else{
+            System.out.println(UNSATISFIABLE);
+        }
+        
+
+    } 
+
+
+    
+
+    
   
 
 
 }
+
+
 
 
 

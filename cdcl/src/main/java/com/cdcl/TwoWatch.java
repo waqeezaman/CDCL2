@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
+
 
 
 
@@ -66,9 +66,6 @@ public class TwoWatch {
         
 
     }
-
-    
-
 
 
 
@@ -132,17 +129,7 @@ public class TwoWatch {
             }
           
 
-
-
-
-
-     
-
-
-
         }
-
-
    
 
         // no conflict found 
@@ -258,35 +245,7 @@ public class TwoWatch {
     }
 
 
-    // not to be used for newly learnt clauses
-    // assumes partial assignment is empty 
-    public void AddClause(HashSet<Integer> new_clause, Integer clause_index){
-
-
-
-        int[] watch_literals = new int[2]  ;
-            
-        List<Integer> literals_in_clause =   new ArrayList<>(new_clause);
-
-        if (literals_in_clause.size()>=2){
-            watch_literals[0] = literals_in_clause.get(0);
-            watch_literals[1] = literals_in_clause.get(1);
-        }
-        else{
-
-            // if clause is a unit clause
-            watch_literals[0] = literals_in_clause.get(0);
-            watch_literals[1] = literals_in_clause.get(0);
-
-        }
-
-        Clause_To_Literal.put(clause_index,watch_literals);
-
-        Literal_To_Clause.get(watch_literals[0]).add(clause_index);
-        Literal_To_Clause.get(watch_literals[1]).add(clause_index);
-
-
-    }
+    
 
 
 
@@ -310,29 +269,7 @@ public class TwoWatch {
     }
 
 
-    public void reindexClause(Integer oldIndex, Integer newIndex){
 
- 
-
-        int[] watched_literals = Clause_To_Literal.remove(oldIndex);
-        Clause_To_Literal.put(newIndex, watched_literals);
-
-        Literal_To_Clause.get(watched_literals[0]).remove(oldIndex);
-        Literal_To_Clause.get(watched_literals[0]).add(newIndex);
-
-
-
-        if(watched_literals[0]!=watched_literals[1]){
-            Literal_To_Clause.get(watched_literals[1]).remove(oldIndex);
-            Literal_To_Clause.get(watched_literals[1]).add(newIndex);
-        }
-
-
-      
-
-        
-
-    }
 
 
 }
