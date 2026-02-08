@@ -1,6 +1,5 @@
 package com.cdcl;
 
-
 import java.io.FileReader;
 import java.io.InputStreamReader;
 
@@ -17,9 +16,6 @@ import java.util.Random;
 import org.apache.commons.cli.*;
 
 
-
-
-
 public class Solver {
 
     private static int verbosity = 0;
@@ -31,32 +27,25 @@ public class Solver {
     public static int numberOfAllowedLearntClauses = 1000; 
     public static String decisionFunction = "vsids";
 
-
     public static int vsidsDecayInterval = 1;
     public static float vsidsBumpRate= 1.2f;
     public static float vsidsDecayRate = 0.95f;
     public static float vsidsRandomDecideProbability=0.1f;
 
-
-
     final static String SATISFIABLE = "SATISFIABLE";
     final static String UNSATISFIABLE = "UNSATISFIABLE";
     
-
     private Formula formula;
 
     private List<Integer> partialAssignment = new ArrayList<Integer>();
     private HashSet<Integer> partialAssignmentSet = new HashSet<>();
     private int sizeOfPartialAssignmentWithoutAnyDecisions = 0;
 
-
     private TwoWatch twoWatch;
 
     private Integer conflictClause = null;
     private int numberOfConflicts = 0; 
     
-
-
     private HashMap<Integer, List<Integer> > LiteralToImplicationClause = new HashMap<>(); 
 
     private HashMap<Integer,Integer> DecisionToLevel = new HashMap<Integer,Integer>();
@@ -66,10 +55,6 @@ public class Solver {
     private HashMap<Integer,Float> vsidsScores = new HashMap<>();
 
     private int restartCounter = 0;
-
-
-    
-
 
 
     public Solver( Formula formula){
@@ -91,10 +76,7 @@ public class Solver {
        }
 
        initialiseVSIDS();
-
     }
-
-
 
     /**
      * 
@@ -138,11 +120,7 @@ public class Solver {
 
         if(random_seed!=null)seed = random_seed;
         if(verbose!=null)verbosity=verbose;
-
-
     }
-
-
 
     /**
      * outputs current solver config settings
@@ -160,11 +138,8 @@ public class Solver {
         System.out.println("VSIDS Bump Rate: "+ vsidsBumpRate );
         System.out.println("VSIDS Decay Rate: "+ vsidsDecayRate );
         System.out.println("VSIDS Random Decide Probability: "+ vsidsRandomDecideProbability );
-
     }
     
-
-
     /**
      * inverts the current solution and adds it to the formula, then returns a solution to this new formula
      *  
@@ -173,8 +148,6 @@ public class Solver {
      * @return a new solution 
      */
     private static List<Integer> getNextSolution(Formula formula, List<Integer> current_solution){
-
-
         if (current_solution==null) return null;
 
         // add inverse of solution to clause list 
@@ -183,89 +156,64 @@ public class Solver {
             inverse.add(-literal);
         }
 
-
         formula.AddClause(inverse);
 
         Solver solver = new Solver(formula);
 
         return solver.Solve();
-        
     }
-
-
 
     /**
      * @param formula
      * @param N
      * @return first N solutions of the formula
      */
-    public static List<List<Integer>> getNSolutions(Formula formula, int N){
-        
+    public static List<List<Integer>> getNSolutions(Formula formula, int N){        
         Solver solver = new Solver(formula);
 
         List< List<Integer>> solutions = new ArrayList<>();
         List<Integer> current_solution = solver.Solve();
 
-
         while(current_solution!=null && solutions.size()< N){
-
             solutions.add(current_solution);
             current_solution = getNextSolution(formula, current_solution);
-
         }
 
-
         return solutions;
-        
-        
     }
-
 
     /**
      * @param formula
      * @return all the solutions to the formula
      */
-    public static List<List<Integer>> getAllSolutions(Formula formula){
-        
+    public static List<List<Integer>> getAllSolutions(Formula formula){        
         Solver solver = new Solver(formula);
 
         List< List<Integer>> solutions = new ArrayList<>();
         List<Integer> current_solution = solver.Solve();
 
-
         while(current_solution!=null ){
-
             solutions.add(current_solution);
-
             current_solution = getNextSolution(formula, current_solution);
-
         }
-
 
         return solutions;
     }
 
-    
     /**
      * @param formula
      * @return true if the formula is satisfiable, false otherwise
      */
     public static boolean getSatisfiable(Formula formula){
-
         Solver solver = new Solver(formula);
-
         return solver.Solve()!=null;
     }
-
-
 
     /**
      * runs cdcl algorithm 
      * @return a solution to the formula
      */
     public List<Integer> Solve(){
-
-        
         // propogate initial units 
         for (Integer initial_unit : formula.getInitialUnits()) {
             UnitPropogate(initial_unit);
@@ -273,22 +221,16 @@ public class Solver {
         }
         sizeOfPartialAssignmentWithoutAnyDecisions = partialAssignment.size();
 
-        
-
         do {
-
             // whilst there a conflict keep on backjumping units and reversing decisions
             while( conflictClause != null ){
-                
 
                 if( decisionStack.size() == 0) return null;
               
                 AnalyseConflict();
             }
 
-            
             decayVSIDS();
-
 
             // forgets all clauses and restarts 
             // frequency of this follows a geometric progression
@@ -297,27 +239,17 @@ public class Solver {
                 Restart();
                 restartCounter+=1;
             }
-
-
-            
             
             // Make Decision
             if (partialAssignment.size() != formula.getNumVariables()){
-
                 Decide();        
-            
             }
 
             
         } while ( partialAssignment.size() != formula.getNumVariables() | conflictClause!=null );
 
-        
-
         return partialAssignment;
     }
-
-    
-
 
     /**
      * picks a decision variable and adds it to the partial assignment
@@ -343,10 +275,7 @@ public class Solver {
 
         // record decision made in decision stack 
         decisionStack.add(decision);
-
-        
     }
-
     
     /**
      * Currently forgets all learnt clauses,
@@ -358,25 +287,14 @@ public class Solver {
 
         // at the moment, forget just forgets all clauses 
     
-        
         if(formula.getClauses().size() <= formula.getInitialSize() + numberOfAllowedLearntClauses) return;
 
-
-    
         for (int i = formula.getInitialSize(); i < formula.getClauses().size(); i++) {
             removeClause(i);
         }
 
         formula.removeLearntClauses();
-
-
-     
-
-
-
-        
     }
-
  
     /**
      * removes clause from two watch structure
@@ -389,7 +307,6 @@ public class Solver {
 
     }
 
-   
     /**
      * reverses partial assignment to the 0th decision level, the level at which no decisions have been taken
      */
@@ -418,8 +335,6 @@ public class Solver {
         }
         while ( isAssigned(random_literal) | random_literal == 0 );
 
-        
-
         return random_literal;
     }
 
@@ -427,8 +342,6 @@ public class Solver {
     private boolean isAssigned(Integer literal){
         return partialAssignmentSet.contains(literal) | partialAssignmentSet.contains(-literal);
     }
-
-
 
     /**
      * propgates units on to partial assignment 
@@ -438,9 +351,6 @@ public class Solver {
      * @param initial_unit , unit to propogate 
      */
     private void UnitPropogate(int initial_unit){
-
-
-
         List<Integer> units = new ArrayList<Integer>();
         units.add(initial_unit);
         
@@ -471,16 +381,9 @@ public class Solver {
             }
 
         }
-
-        
-
-
     }
 
-
-
     private void AnalyseConflict(){
-
         numberOfConflicts+=1;
 
         Integer lastDecision = decisionStack.peek();
@@ -493,9 +396,6 @@ public class Solver {
         clauses.push(conflictClause);
 
         HashSet<Integer> learnedClause = new HashSet<>();
-
-
-    
 
         while ( !clauses.isEmpty()){
             
@@ -567,26 +467,17 @@ public class Solver {
         
     }
 
-
     /**
      * backtracks after a conflict has been found to a higher decision level
      * @param second_last_decision , second last decision that was responsible for the conflict, null if only one decision was responsible
      */
     private void ReverseDecisions( Integer second_last_decision){
-
-
         // there is no second to last decision, and we are reversing the first decision
         if(second_last_decision == null ){
             
             Restart();
-            
-
-            
-
             return;
         }
-
-
         
         for (int i = partialAssignment.size()-1 ; i > DecisionToLevel.get(second_last_decision); i--) {
             
@@ -595,7 +486,6 @@ public class Solver {
 
             partialAssignmentSet.remove(literal_to_remove);
             LiteralToImplicationClause.get( literal_to_remove).clear(); 
-            
         }
 
         // remove decisions from decision stack 
@@ -605,14 +495,7 @@ public class Solver {
             DecisionToLevel.remove(decisionStack.pop());
 
         }
-
-
-
-
-
-
     }
-
 
     private void AddLearnedClause(HashSet<Integer> learned_clause, Integer last_decision){
 
@@ -629,8 +512,6 @@ public class Solver {
 
     }
 
-  
-
     private void initialiseVSIDS(){
         // for every variable set its vsds score as the number of occurences it has 
         for (int i = 1; i <= formula.getNumVariables(); i++) {
@@ -643,10 +524,7 @@ public class Solver {
 
             vsidsScores.put(i, occurences);
             vsidsPriorityQueue.add(i);
-
-        }
-
-        
+        }  
     }
 
     private void updateVSIDS(HashSet<Integer> clause){
@@ -681,9 +559,7 @@ public class Solver {
             }
         }
   
-        return 0;
-
-        
+        return 0;        
     }
 
     
@@ -694,8 +570,6 @@ public class Solver {
      * @return clause activity score based on the sum of the vsids scores of the variables in the clause
      */
     private float getClauseActivityScore(HashSet<Integer> clause){
-
-
         float activity_score = 0f;
         for (Integer literal : clause) {
             activity_score += vsidsScores.get( Math.abs(literal) );
@@ -736,13 +610,9 @@ public class Solver {
         options.addOption("v", "verbosity", false, "verbosity level, 0 for no output, 1 for some output. defualt: 0");
         options.addOption("h", "help", false, "outputs available options and exits");
 
-        
-        
-        
+                
         CommandLineParser parser = new DefaultParser();
         CommandLine cmd = null;
-
-        
 
         // if there is an error with the options entered, display help menu
         try {
@@ -781,65 +651,38 @@ public class Solver {
         if(cmd.hasOption("seed")) seed = Integer.valueOf(cmd.getOptionValue("seed"));
         if(cmd.hasOption("v")) verbosity = 1;
 
-       
     }
-
-    /*
-    public static void main( String[] args) throws Exception{
-        if (verbosity>0) System.out.println("SEED : " + seed );
-
-        Formula formula = Formula_IO.ReadFormula(new InputStreamReader(System.in));
    
+    // // Include this function for testing purposes
+    // public static void main( String[] args) throws Exception{
+    //     if (verbosity>0) System.out.println("SEED : " + seed );
 
-        if (Solver.getSatisfiable(formula)){
-            System.out.println(SATISFIABLE);
-        }
-        else{
-            System.out.println(UNSATISFIABLE);
-        }
+    //     Formula formula = Formula_IO.ReadFormula(new InputStreamReader(System.in));
+   
+    //     if (Solver.getSatisfiable(formula)){
+    //         System.out.println(SATISFIABLE);
+    //     }
+    //     else{
+    //         System.out.println(UNSATISFIABLE);
+    //     }
         
-
-    } 
-     */
-
-
-
-  
-    public static void main( String[] args) throws Exception{
-
-                   
+    // } 
+     
+    //Include this function for general purposes 
+    // Uses command line arguments to set config and read formula from file path provided in arguments
+    public static void main( String[] args) throws Exception{       
         processArgs(args);
-
-
-
 
         if (verbosity>0) outputConfig();
 
-
         Formula formula = Formula_IO.ReadFormula(new FileReader(formulaPath));
    
-
-        if (Solver.getSatisfiable(formula)){
+        if (Solver.getSatisfiable(formula)){ 
             System.out.println(SATISFIABLE);
         }
         else{
             System.out.println(UNSATISFIABLE);
         }
-        
-
     } 
 
-
-    
-
-    
-  
-
-
 }
-
-
-
-
-
-

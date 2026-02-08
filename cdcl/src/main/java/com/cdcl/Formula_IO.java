@@ -8,18 +8,10 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-
-
 public class Formula_IO {
 
     public static Formula ReadFormula(Reader input_reader) throws Exception{
-
-        
-            
-        
-        
             var in = new BufferedReader(input_reader);
-
 
             int numvars=0;
 
@@ -42,10 +34,6 @@ public class Formula_IO {
 
                         break;
                     }
-
-
-                    
-                
             }
 
             while (true) {
@@ -64,22 +52,10 @@ public class Formula_IO {
                         }
                         clause.add( Integer.parseInt(s));
                     }
-                    clauses.add(clause);
-
-
-                    
-                
+                    clauses.add(clause);   
             }
-
             in.close();
 
-            return new Formula(clauses, numvars);
-
-       
+            return new Formula(clauses, numvars);  
     }
-
-
-
-
-
 }

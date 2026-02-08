@@ -6,22 +6,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-
-
-
 public class TwoWatch {
-    
-
     // which stores the literals in the formula and the clauses that they are being watched in 
-    private static HashMap<Integer,ArrayList<Integer>> Literal_To_Clause= new HashMap<Integer,ArrayList<Integer>>();
+    private HashMap<Integer,ArrayList<Integer>> Literal_To_Clause= new HashMap<Integer,ArrayList<Integer>>();
 
     // which stores clauses and the literals in them that are being watched
-    private static HashMap<Integer, int[]> Clause_To_Literal= new HashMap<Integer,int[]>();
+    private HashMap<Integer, int[]> Clause_To_Literal= new HashMap<Integer,int[]>();
 
     private Formula Formula;
-
-
-
 
     public TwoWatch(Formula formula){
 
@@ -56,18 +48,8 @@ public class TwoWatch {
             Literal_To_Clause.get(watch_literals[0]).add(c);
             Literal_To_Clause.get(watch_literals[1]).add(c);
 
-
-
         }
-
-
-      
-        
-        
-
     }
-
-
 
     /**
      * @param added_literal , literal that has just been made true
@@ -109,8 +91,6 @@ public class TwoWatch {
             // conflict has occured
             if( two_watch_update[0] == 1 ){
                
-                
-
                 // returning clause responsible for conflict 
                 return affected_clause;
             } 
@@ -127,18 +107,10 @@ public class TwoWatch {
                 literal_to_inference_clauses.get(two_watch_update[1]).add(affected_clause);
 
             }
-          
-
         }
-   
-
         // no conflict found 
         return null;
-
-
     }
-
-
 
 
     /**
@@ -205,13 +177,7 @@ public class TwoWatch {
         return new int[]{0,0};
     }
 
-
-
     public void AddLearnedClause( Integer clause_index, Integer last_decision){
-
-        
-
-
         // clause is a unit clause 
         if( Formula.getClauses().get(clause_index).size() == 1 ){
             
@@ -219,7 +185,6 @@ public class TwoWatch {
             Literal_To_Clause.get(last_decision).add(clause_index);
         }
         else{
-
             Integer other_literal = 0; 
 
             for (Integer literal : Formula.getClauses().get(clause_index)) {
@@ -231,28 +196,14 @@ public class TwoWatch {
 
             }
 
-
             Clause_To_Literal.put(clause_index, new int[]{last_decision, other_literal});
             
             Literal_To_Clause.get(last_decision).add( clause_index);
             Literal_To_Clause.get(other_literal).add(clause_index);
-
-
-
         }
-
-
     }
 
-
-    
-
-
-
     public void RemoveClause(int clause_index){
-
-
-
         // get literals that are being watched in this clause
         int watched_literal_1 = Clause_To_Literal.get(clause_index)[0];
         int watched_literal_2 = Clause_To_Literal.get(clause_index)[1];
@@ -260,16 +211,6 @@ public class TwoWatch {
         Literal_To_Clause.get(watched_literal_1).remove(Integer.valueOf(clause_index));
         Literal_To_Clause.get(watched_literal_2).remove(Integer.valueOf(clause_index));
 
-        
         Clause_To_Literal.remove(Integer.valueOf(clause_index));
-        
-
-
-      
     }
-
-
-
-
-
 }
